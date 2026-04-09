@@ -7,20 +7,32 @@ import { SearchFilter } from "./components/SearchFilter";
 import { Leaderboard } from "./components/Leaderboard";
 import { Loader2, ExternalLink } from "lucide-react";
 
-const ROUND_LABELS = ["", "Round 1 (Thursday)", "Round 2 (Friday)", "Round 3 (Saturday)", "Round 4 (Sunday)"];
+const ROUND_LABELS = [
+  "",
+  "Round 1 (Thursday)",
+  "Round 2 (Friday)",
+  "Round 3 (Saturday)",
+  "Round 4 (Sunday)",
+];
 
 export default function App() {
-  const { data: participants, dataUpdatedAt, isFetching, isLoading, isError } =
-    useSheetData();
+  const {
+    data: participants,
+    dataUpdatedAt,
+    isFetching,
+    isLoading,
+    isError,
+  } = useSheetData();
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
     if (!participants) return [];
     if (!search.trim()) return participants;
     const q = search.toLowerCase();
-    return participants.filter((p) =>
-      p.name.toLowerCase().includes(q) ||
-      p.golfers.some((g) => g.name.toLowerCase().includes(q))
+    return participants.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.golfers.some((g) => g.name.toLowerCase().includes(q)),
     );
   }, [participants, search]);
 
@@ -34,16 +46,16 @@ export default function App() {
       <main className="max-w-5xl mx-auto px-4 py-6 space-y-4">
         {/* Status bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div>
+          <div className="space-y-1">
             {scoresExist && currentRound > 0 && (
               <span className="text-sm font-medium text-augusta-green bg-augusta-light rounded-full px-3 py-1">
                 {ROUND_LABELS[currentRound]}
               </span>
             )}
-            {!scoresExist && participants && (
-              <span className="text-sm text-score-par italic">
+            {participants && (
+              <p className="text-sm text-score-par italic">
                 Scores will appear once Drew updates the Google Sheet
-              </span>
+              </p>
             )}
           </div>
           <RefreshIndicator
