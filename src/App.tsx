@@ -42,7 +42,7 @@ export default function App() {
             )}
             {!scoresExist && participants && (
               <span className="text-sm text-score-par italic">
-                Tournament starts Thursday, April 10 — scores will appear here once play begins
+                Scores will appear once Drew updates the Google Sheet
               </span>
             )}
           </div>
