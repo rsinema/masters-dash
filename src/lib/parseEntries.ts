@@ -1,4 +1,5 @@
 import type { GolferPick, Participant } from "../types";
+import { PAR } from "../config/constants";
 
 function parseScore(val: string | undefined): number | null {
   if (!val) return null;
@@ -9,7 +10,9 @@ function parseScore(val: string | undefined): number | null {
     return null;
   }
   const n = Number(trimmed);
-  return isNaN(n) ? null : n;
+  if (isNaN(n) || n === 0) return null;
+  // Convert total strokes to score relative to par
+  return n - PAR;
 }
 
 export function parseEntries(rows: string[][]): Participant[] {

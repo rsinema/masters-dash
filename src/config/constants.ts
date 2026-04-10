@@ -1,3 +1,5 @@
+export const PAR = 72; // Augusta National par per round
+
 export const SHEET_ID = "1gI3EoWin1IDaT2ZRW43d6rZWYv-d6W8a47KXmYtNiA4";
 export const GID = "1263132281";
 
