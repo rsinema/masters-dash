@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { ChevronDown, ChevronRight, Trophy } from "lucide-react";
 import type { Participant } from "../types";
 import { PaymentBadge } from "./PaymentBadge";
@@ -25,6 +25,24 @@ function rankIcon(rank: number) {
   return <span className="text-sm text-score-par tabular-nums">{rank}</span>;
 }
 
+function RankChangeIndicator({ change }: { change: number }) {
+  if (change === 0) return null;
+
+  if (change > 0) {
+    return (
+      <span className="text-xs font-semibold text-score-birdie ml-1">
+        ▲{change}
+      </span>
+    );
+  }
+
+  return (
+    <span className="text-xs font-semibold text-score-bogey ml-1">
+      ▼{Math.abs(change)}
+    </span>
+  );
+}
+
 function computeRoundTotal(
   participant: Participant,
   round: "thursday" | "friday" | "saturday" | "sunday"
@@ -35,7 +53,30 @@ function computeRoundTotal(
   return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) : null;
 }
 
-export function LeaderboardRow({ participant }: { participant: Participant }) {
+function useScoreFlash(scores: Record<string, number | null>): Set<string> {
+  const prevRef = useRef<Record<string, number | null>>(scores);
+  const [flashing, setFlashing] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const changed = new Set<string>();
+    for (const key of Object.keys(scores)) {
+      if (prevRef.current[key] !== scores[key] && prevRef.current[key] !== undefined) {
+        changed.add(key);
+      }
+    }
+    prevRef.current = scores;
+
+    if (changed.size > 0) {
+      setFlashing(changed);
+      const timer = setTimeout(() => setFlashing(new Set()), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [scores]);
+
+  return flashing;
+}
+
+export function LeaderboardRow({ participant, rankChange }: { participant: Participant; rankChange: number }) {
   const [expanded, setExpanded] = useState(false);
 
   const r1 = computeRoundTotal(participant, "thursday");
@@ -43,14 +84,27 @@ export function LeaderboardRow({ participant }: { participant: Participant }) {
   const r3 = computeRoundTotal(participant, "saturday");
   const r4 = computeRoundTotal(participant, "sunday");
 
+  const scoreKey = `${r1},${r2},${r3},${r4},${participant.totalScore}`;
+  const scores = useMemo(
+    () => ({ r1, r2, r3, r4, total: participant.totalScore } as Record<string, number | null>),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [scoreKey]
+  );
+  const flashing = useScoreFlash(scores);
+
+  const flash = (key: string) => flashing.has(key) ? "score-flash" : "";
+
   return (
     <>
       <tr
         className="cursor-pointer hover:bg-augusta-light/70 transition-colors border-t border-gray-100"
         onClick={() => setExpanded(!expanded)}
       >
-        <td className="py-3 px-3 text-center w-12">
-          {rankIcon(participant.rank)}
+        <td className="py-3 px-3 text-center w-16">
+          <span className="inline-flex items-center justify-center gap-0.5">
+            {rankIcon(participant.rank)}
+            <RankChangeIndicator change={rankChange} />
+          </span>
         </td>
         <td className="py-3 px-3">
           <div className="flex items-center gap-2">
@@ -67,20 +121,20 @@ export function LeaderboardRow({ participant }: { participant: Participant }) {
         <td className="py-3 px-3 text-center">
           <PaymentBadge paid={participant.paid} />
         </td>
-        <td className={`py-3 px-3 text-center tabular-nums ${scoreColor(r1)}`}>
+        <td className={`py-3 px-3 text-center tabular-nums ${scoreColor(r1)} ${flash("r1")}`}>
           {formatScore(r1)}
         </td>
-        <td className={`py-3 px-3 text-center tabular-nums ${scoreColor(r2)}`}>
+        <td className={`py-3 px-3 text-center tabular-nums ${scoreColor(r2)} ${flash("r2")}`}>
           {formatScore(r2)}
         </td>
-        <td className={`py-3 px-3 text-center tabular-nums ${scoreColor(r3)}`}>
+        <td className={`py-3 px-3 text-center tabular-nums ${scoreColor(r3)} ${flash("r3")}`}>
           {formatScore(r3)}
         </td>
-        <td className={`py-3 px-3 text-center tabular-nums ${scoreColor(r4)}`}>
+        <td className={`py-3 px-3 text-center tabular-nums ${scoreColor(r4)} ${flash("r4")}`}>
           {formatScore(r4)}
         </td>
         <td
-          className={`py-3 px-3 text-center tabular-nums font-bold text-lg ${scoreColor(participant.totalScore || null)}`}
+          className={`py-3 px-3 text-center tabular-nums font-bold text-lg ${scoreColor(participant.totalScore || null)} ${flash("total")}`}
         >
           {formatScore(participant.totalScore)}
         </td>

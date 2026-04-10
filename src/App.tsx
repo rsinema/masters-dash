@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useSheetData } from "./hooks/useSheetData";
+import { useRankChanges } from "./hooks/useRankChanges";
 import { hasAnyScores, getCurrentRound } from "./lib/parseEntries";
 import { MastersBanner } from "./components/MastersBanner";
 import { RefreshIndicator } from "./components/RefreshIndicator";
@@ -23,6 +24,7 @@ export default function App() {
     isLoading,
     isError,
   } = useSheetData();
+  const rankChanges = useRankChanges(participants, dataUpdatedAt);
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
@@ -88,7 +90,7 @@ export default function App() {
         )}
 
         {/* Leaderboard */}
-        {participants && <Leaderboard participants={filtered} />}
+        {participants && <Leaderboard participants={filtered} rankChanges={rankChanges} />}
 
         {/* Footer */}
         <footer className="text-center py-4 text-xs text-score-par space-y-1">

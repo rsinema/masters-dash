@@ -3,9 +3,10 @@ import { LeaderboardRow } from "./LeaderboardRow";
 
 interface Props {
   participants: Participant[];
+  rankChanges: Map<string, number>;
 }
 
-export function Leaderboard({ participants }: Props) {
+export function Leaderboard({ participants, rankChanges }: Props) {
   if (participants.length === 0) {
     return (
       <div className="text-center py-12 text-score-par">
@@ -31,7 +32,7 @@ export function Leaderboard({ participants }: Props) {
         </thead>
         <tbody>
           {participants.map((p) => (
-            <LeaderboardRow key={p.name} participant={p} />
+            <LeaderboardRow key={p.name} participant={p} rankChange={rankChanges.get(p.name) ?? 0} />
           ))}
         </tbody>
       </table>
