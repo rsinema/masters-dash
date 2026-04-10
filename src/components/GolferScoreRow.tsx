@@ -14,9 +14,17 @@ function scoreColor(score: number | null): string {
   return "text-score-par";
 }
 
-export function GolferScoreRow({ golfer }: { golfer: GolferPick }) {
+function rowClassName(highlight?: "best" | "worst"): string {
+  if (highlight === "best")
+    return "bg-green-100/70 border-t border-green-200 border-l-2 border-l-score-birdie";
+  if (highlight === "worst")
+    return "bg-red-100/70 border-t border-red-200 border-l-2 border-l-score-bogey";
+  return "bg-augusta-light/50 border-t border-augusta-light";
+}
+
+export function GolferScoreRow({ golfer, highlight }: { golfer: GolferPick; highlight?: "best" | "worst" }) {
   return (
-    <tr className="bg-augusta-light/50 border-t border-augusta-light">
+    <tr className={rowClassName(highlight)}>
       <td></td>
       <td className="py-1.5 pl-8 text-sm text-gray-600">
         {golfer.name}

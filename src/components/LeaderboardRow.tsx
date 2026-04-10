@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { ChevronDown, ChevronRight, Trophy } from "lucide-react";
 import type { Participant } from "../types";
+import { getBestWorstGolferIndices } from "../lib/parseEntries";
 import { PaymentBadge } from "./PaymentBadge";
 import { GolferScoreRow } from "./GolferScoreRow";
 
@@ -84,6 +85,11 @@ export function LeaderboardRow({ participant, rankChange }: { participant: Parti
   const r3 = computeRoundTotal(participant, "saturday");
   const r4 = computeRoundTotal(participant, "sunday");
 
+  const { bestIdx, worstIdx } = useMemo(
+    () => getBestWorstGolferIndices(participant.golfers),
+    [participant.golfers]
+  );
+
   const scoreKey = `${r1},${r2},${r3},${r4},${participant.totalScore}`;
   const scores = useMemo(
     () => ({ r1, r2, r3, r4, total: participant.totalScore } as Record<string, number | null>),
@@ -140,8 +146,12 @@ export function LeaderboardRow({ participant, rankChange }: { participant: Parti
         </td>
       </tr>
       {expanded &&
-        participant.golfers.map((golfer) => (
-          <GolferScoreRow key={golfer.name} golfer={golfer} />
+        participant.golfers.map((golfer, idx) => (
+          <GolferScoreRow
+            key={golfer.name}
+            golfer={golfer}
+            highlight={idx === bestIdx ? "best" : idx === worstIdx ? "worst" : undefined}
+          />
         ))}
     </>
   );

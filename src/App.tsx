@@ -6,6 +6,7 @@ import { MastersBanner } from "./components/MastersBanner";
 import { RefreshIndicator } from "./components/RefreshIndicator";
 import { SearchFilter } from "./components/SearchFilter";
 import { Leaderboard } from "./components/Leaderboard";
+import { BestWorstCard } from "./components/BestWorstCard";
 import { Loader2, ExternalLink } from "lucide-react";
 
 const ROUND_LABELS = [
@@ -88,6 +89,9 @@ export default function App() {
             </p>
           </div>
         )}
+
+        {/* Best/Worst Picks */}
+        {participants && scoresExist && <BestWorstCard participants={participants} />}
 
         {/* Leaderboard */}
         {participants && <Leaderboard participants={filtered} rankChanges={rankChanges} />}

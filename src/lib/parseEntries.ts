@@ -86,6 +86,82 @@ export function parseEntries(rows: string[][]): Participant[] {
   return participants;
 }
 
+export function getBestWorstGolferIndices(
+  golfers: GolferPick[]
+): { bestIdx: number | null; worstIdx: number | null } {
+  let bestIdx: number | null = null;
+  let worstIdx: number | null = null;
+  let bestScore = Infinity;
+  let worstScore = -Infinity;
+  let scoredCount = 0;
+
+  for (let i = 0; i < golfers.length; i++) {
+    const total = golfers[i]!.total;
+    if (total === null) continue;
+    scoredCount++;
+    if (total < bestScore) {
+      bestScore = total;
+      bestIdx = i;
+    }
+    if (total > worstScore) {
+      worstScore = total;
+      worstIdx = i;
+    }
+  }
+
+  // Don't label a solo golfer as "worst"
+  if (scoredCount < 2) worstIdx = null;
+  // If best and worst are the same index (all tied), only show best
+  if (bestIdx !== null && bestIdx === worstIdx) worstIdx = null;
+
+  return { bestIdx, worstIdx };
+}
+
+export interface GlobalBestWorst {
+  golferName: string;
+  total: number;
+  pickedBy: string[];
+}
+
+export function getGlobalBestWorst(
+  participants: Participant[]
+): { best: GlobalBestWorst | null; worst: GlobalBestWorst | null } {
+  const golferMap = new Map<
+    string,
+    { total: number; pickedBy: string[] }
+  >();
+
+  for (const p of participants) {
+    for (const g of p.golfers) {
+      if (g.total === null) continue;
+      const existing = golferMap.get(g.name);
+      if (existing) {
+        // Use the best (lowest) total seen for this golfer across teams
+        if (g.total < existing.total) existing.total = g.total;
+        if (!existing.pickedBy.includes(p.name)) existing.pickedBy.push(p.name);
+      } else {
+        golferMap.set(g.name, { total: g.total, pickedBy: [p.name] });
+      }
+    }
+  }
+
+  if (golferMap.size === 0) return { best: null, worst: null };
+
+  let best: GlobalBestWorst | null = null;
+  let worst: GlobalBestWorst | null = null;
+
+  for (const [name, { total, pickedBy }] of golferMap) {
+    if (!best || total < best.total) {
+      best = { golferName: name, total, pickedBy };
+    }
+    if (!worst || total > worst.total) {
+      worst = { golferName: name, total, pickedBy };
+    }
+  }
+
+  return { best, worst };
+}
+
 export function hasAnyScores(participants: Participant[]): boolean {
   return participants.some((p) =>
     p.golfers.some((g) => g.total !== null)
